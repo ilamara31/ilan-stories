@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#05070d">
+<title>ilan stories</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;500;600&display=swap" rel="stylesheet">
+<style>
+:root { --night:#05070d; --ink:#eef2fb; --ink2:rgba(238,242,251,.6); --amber:#ffc65c; color-scheme:dark; }
+body { margin:0; min-height:100vh; background:radial-gradient(120% 80% at 50% 0%, #0f1a36, var(--night) 60%); color:var(--ink); font-family:'Outfit', -apple-system, system-ui, sans-serif;
+  padding:calc(env(safe-area-inset-top,0px) + 56px) max(16px, env(safe-area-inset-right,0px)) 48px max(16px, env(safe-area-inset-left,0px)); box-sizing:border-box; }
+.wrap { max-width:880px; margin:0 auto; }
+.k { font:500 13px/1 'Outfit',sans-serif; letter-spacing:.34em; text-transform:uppercase; color:var(--amber); }
+h1 { font:200 clamp(44px,10vw,84px)/1 'Outfit',sans-serif; letter-spacing:.06em; margin:14px 0 8px; }
+p.s { color:var(--ink2); font:300 18px/1.5 'Outfit',sans-serif; margin:0 0 36px; }
+a.card { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:0; text-decoration:none; color:inherit; border-radius:24px; overflow:hidden;
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); transition:transform .3s; }
+a.card:hover { transform:translateY(-3px); }
+.art { aspect-ratio:16/10; background:linear-gradient(180deg,#02040b,#0b1633 60%,#1b2a52); position:relative; overflow:hidden; }
+.art::before { content:''; position:absolute; left:62%; top:30%; width:14px; height:44%; background:repeating-linear-gradient(180deg,#d9d3c7 0 16%,#a83a3f 16% 32%); border-radius:4px 4px 0 0; }
+.art::after { content:''; position:absolute; left:calc(62% + 7px); top:28%; width:70%; height:3px; transform-origin:0 50%; background:linear-gradient(90deg,rgba(255,236,180,.9),transparent); filter:blur(2px); animation:sweep 5s ease-in-out infinite; }
+@keyframes sweep { 0%,100% { transform:rotate(180deg) scaleX(.3); } 50% { transform:rotate(180deg) scaleX(1); } }
+.sea { position:absolute; left:0; right:0; bottom:0; height:28%; background:linear-gradient(180deg,#0d1b3a,#060c1d); }
+.txt { padding:24px; display:flex; flex-direction:column; justify-content:center; gap:8px; }
+.txt b { font:300 30px/1.1 'Outfit',sans-serif; letter-spacing:.04em; }
+.txt span { color:var(--ink2); font:300 16px/1.45 'Outfit',sans-serif; }
+.txt em { font-style:normal; color:var(--amber); font:500 13px/1 'Outfit',sans-serif; letter-spacing:.12em; text-transform:uppercase; margin-top:6px; }
+@media (max-width:640px) { a.card { grid-template-columns:1fr; } }
+</style>
+<div class="wrap">
+  <div class="k">ilan stories</div>
+  <h1>Stories</h1>
+  <p class="s">Short animated stories, narrated. Turn the sound on.</p>
+  <a class="card" href="the-last-light/">
+    <div class="art"><div class="sea"></div></div>
+    <div class="txt"><b>The Last Light</b><span>For a hundred years the lighthouse above Saltmere has never gone dark. Tonight, it will.</span><em>Part 1 &middot; 3 min</em></div>
+  </a>
+</div>
+</html>

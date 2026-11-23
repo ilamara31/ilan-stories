@@ -1,0 +1,374 @@
+{
+ "total": 176.41,
+ "scenes": [
+  {
+   "id": "title",
+   "t0": 0.0,
+   "t1": 14.785
+  },
+  {
+   "id": "keeper",
+   "t0": 14.785,
+   "t1": 23.136
+  },
+  {
+   "id": "rules",
+   "t0": 23.136,
+   "t1": 44.44
+  },
+  {
+   "id": "storm",
+   "t0": 44.44,
+   "t1": 51.789
+  },
+  {
+   "id": "bedroom",
+   "t0": 51.789,
+   "t1": 68.123
+  },
+  {
+   "id": "stairs",
+   "t0": 68.123,
+   "t1": 76.8
+  },
+  {
+   "id": "logbook",
+   "t0": 76.8,
+   "t1": 93.654
+  },
+  {
+   "id": "relight",
+   "t0": 93.654,
+   "t1": 110.638
+  },
+  {
+   "id": "city",
+   "t0": 110.638,
+   "t1": 124.074
+  },
+  {
+   "id": "figure",
+   "t0": 124.074,
+   "t1": 130.814
+  },
+  {
+   "id": "twist",
+   "t0": 130.814,
+   "t1": 155.465
+  },
+  {
+   "id": "hand",
+   "t0": 155.465,
+   "t1": 164.867
+  },
+  {
+   "id": "end",
+   "t0": 164.867,
+   "t1": 175.907
+  }
+ ],
+ "cues": [
+  {
+   "who": "N",
+   "text": "On the edge of the world, there is a town called Saltmere.",
+   "t0": 2.2,
+   "t1": 5.812
+  },
+  {
+   "who": "N",
+   "text": "And on the cliffs above Saltmere stands a lighthouse that has never gone dark.",
+   "t0": 6.432,
+   "t1": 10.778
+  },
+  {
+   "who": "N",
+   "text": "Not once, in a hundred years.",
+   "t0": 11.248,
+   "t1": 13.665
+  },
+  {
+   "who": "N",
+   "text": "Its keeper was old Elias. And every evening, his granddaughter Mira climbed the two hundred steps to help him.",
+   "t0": 15.085,
+   "t1": 22.316
+  },
+  {
+   "who": "E",
+   "text": "Three rules, Mira. Keep the glass clean. Keep the flame burning.",
+   "t0": 23.536,
+   "t1": 29.565
+  },
+  {
+   "who": "E",
+   "text": "And never, ever look at the sea when the light goes out.",
+   "t0": 30.135,
+   "t1": 33.762
+  },
+  {
+   "who": "M",
+   "text": "Why not?",
+   "t0": 34.382,
+   "t1": 35.005
+  },
+  {
+   "who": "E",
+   "text": "Because the sea, looks back.",
+   "t0": 35.825,
+   "t1": 37.964
+  },
+  {
+   "who": "N",
+   "text": "Mira laughed. She thought it was just another one of Grandpa's stories.",
+   "t0": 38.884,
+   "t1": 43.52
+  },
+  {
+   "who": "N",
+   "text": "Then came the night of the great storm.",
+   "t0": 46.04,
+   "t1": 48.219
+  },
+  {
+   "who": "N",
+   "text": "At midnight, Mira woke up. Her room was dark. Too dark. The lighthouse beam had stopped.",
+   "t0": 52.389,
+   "t1": 58.914
+  },
+  {
+   "who": "M",
+   "text": "Grandpa?",
+   "t0": 59.634,
+   "t1": 60.153
+  },
+  {
+   "who": "N",
+   "text": "His chair was empty. The door to the tower was swinging in the wind.",
+   "t0": 61.173,
+   "t1": 65.032
+  },
+  {
+   "who": "M",
+   "text": "Grandpa! Where are you?",
+   "t0": 65.652,
+   "t1": 67.303
+  },
+  {
+   "who": "N",
+   "text": "Mira grabbed a lantern, and climbed.",
+   "t0": 68.623,
+   "t1": 71.267
+  },
+  {
+   "who": "N",
+   "text": "Fifty steps.",
+   "t0": 71.787,
+   "t1": 72.911
+  },
+  {
+   "who": "N",
+   "text": "One hundred.",
+   "t0": 73.531,
+   "t1": 74.354
+  },
+  {
+   "who": "N",
+   "text": "Two hundred.",
+   "t0": 74.974,
+   "t1": 75.78
+  },
+  {
+   "who": "N",
+   "text": "At the top, the great lamp was cold. And on the table lay Grandpa's logbook, open to the last page.",
+   "t0": 77.2,
+   "t1": 84.121
+  },
+  {
+   "who": "E",
+   "text": "If you are reading this, the light has gone out. Light it again. Quickly. Before they wake up.",
+   "t0": 84.841,
+   "t1": 92.734
+  },
+  {
+   "who": "N",
+   "text": "Her hands were shaking. One match.",
+   "t0": 93.654,
+   "t1": 96.083
+  },
+  {
+   "who": "N",
+   "text": "Two.",
+   "t0": 97.103,
+   "t1": 97.59
+  },
+  {
+   "who": "N",
+   "text": "Then",
+   "t0": 98.41,
+   "t1": 98.862
+  },
+  {
+   "who": "N",
+   "text": "The light roared back to life. And Mira did the one thing she was never supposed to do.",
+   "t0": 101.732,
+   "t1": 107.19
+  },
+  {
+   "who": "N",
+   "text": "She looked at the sea.",
+   "t0": 108.01,
+   "t1": 109.318
+  },
+  {
+   "who": "N",
+   "text": "Deep beneath the waves, lights were glowing. Windows. Towers. Streets.",
+   "t0": 112.038,
+   "t1": 117.733
+  },
+  {
+   "who": "N",
+   "text": "A whole city, at the bottom of the ocean.",
+   "t0": 118.303,
+   "t1": 120.907
+  },
+  {
+   "who": "N",
+   "text": "And it was waking up.",
+   "t0": 121.477,
+   "t1": 122.654
+  },
+  {
+   "who": "N",
+   "text": "Then, on the rocks below, someone walked out of the water.",
+   "t0": 124.074,
+   "t1": 128.055
+  },
+  {
+   "who": "M",
+   "text": "Grandpa?!",
+   "t0": 129.375,
+   "t1": 129.894
+  },
+  {
+   "who": "E",
+   "text": "Mira. I told you not to look.",
+   "t0": 130.814,
+   "t1": 133.609
+  },
+  {
+   "who": "M",
+   "text": "What is that place? What's going on?",
+   "t0": 134.429,
+   "t1": 137.023
+  },
+  {
+   "who": "E",
+   "text": "The light was never keeping monsters away from Saltmere, Mira.",
+   "t0": 137.943,
+   "t1": 142.531
+  },
+  {
+   "who": "E",
+   "text": "It was keeping us, away from you.",
+   "t0": 143.451,
+   "t1": 146.079
+  },
+  {
+   "who": "M",
+   "text": "Us?",
+   "t0": 147.199,
+   "t1": 147.557
+  },
+  {
+   "who": "E",
+   "text": "Your mother is down there. And she has been waiting, a very long time.",
+   "t0": 148.677,
+   "t1": 154.045
+  },
+  {
+   "who": "N",
+   "text": "The beam flickered. And when Mira looked down at her own hand,",
+   "t0": 155.465,
+   "t1": 159.301
+  },
+  {
+   "who": "N",
+   "text": "it was glowing. The same deep blue as the sea.",
+   "t0": 159.921,
+   "t1": 162.947
+  },
+  {
+   "who": "N",
+   "text": "The Last Light. Part two. The City Below.",
+   "t0": 166.067,
+   "t1": 169.584
+  },
+  {
+   "who": "N",
+   "text": "Coming soon.",
+   "t0": 170.304,
+   "t1": 171.287
+  }
+ ],
+ "events": [
+  {
+   "name": "titleIn",
+   "t": 2.2
+  },
+  {
+   "name": "thunder",
+   "t": 44.44
+  },
+  {
+   "name": "thunder2",
+   "t": 49.339
+  },
+  {
+   "name": "lightOut",
+   "t": 49.589
+  },
+  {
+   "name": "door",
+   "t": 65.152
+  },
+  {
+   "name": "steps",
+   "t": 68.123
+  },
+  {
+   "name": "stepsEnd",
+   "t": 76.8
+  },
+  {
+   "name": "write",
+   "t": 84.841
+  },
+  {
+   "name": "match1",
+   "t": 96.203
+  },
+  {
+   "name": "match2",
+   "t": 97.71
+  },
+  {
+   "name": "whoosh",
+   "t": 99.332
+  },
+  {
+   "name": "cityRise",
+   "t": 110.638
+  },
+  {
+   "name": "boom",
+   "t": 143.451
+  },
+  {
+   "name": "glow",
+   "t": 159.921
+  },
+  {
+   "name": "sting",
+   "t": 164.867
+  }
+ ]
+}

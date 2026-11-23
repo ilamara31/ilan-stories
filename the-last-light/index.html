@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#05070d">
+<meta property="og:title" content="The Last Light">
+<meta property="og:description" content="For a hundred years the lighthouse above Saltmere has never gone dark. Tonight, it will.">
+<title>The Last Light</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="An animated story with narration. Part 1 of The Last Light.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one full-screen cinema stage (16:9 canvas, letterboxed), subtitles under the picture, a poster screen on top before play.
+   Deliberately single (dark) theme: it is a night-time film. */
+:root {
+  --night:#05070d; --ink:#eef2fb; --ink2:rgba(238,242,251,.62); --amber:#ffc65c; --sea:#4fd6ff; --mira:#ffd35c; --elias:#8fe3d4;
+  --ui:'Outfit', -apple-system, 'Helvetica Neue', system-ui, sans-serif;
+  color-scheme:dark;
+}
+html, body { height:100%; }
+body { margin:0; background:var(--night); color:var(--ink); font-family:var(--ui); overflow:hidden; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; }
+#cv { position:fixed; inset:0; width:100%; height:100%; display:block; }
+#subs { position:fixed; left:max(16px, env(safe-area-inset-left,0px)); right:max(16px, env(safe-area-inset-right,0px)); text-align:center; pointer-events:none; z-index:3;
+  font:600 clamp(17px,2.6vw,30px)/1.32 var(--ui); letter-spacing:-.005em; text-wrap:balance; text-shadow:0 2px 14px rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.9); }
+#subs .who { display:block; font:600 clamp(11px,1.2vw,14px)/1 var(--ui); letter-spacing:.24em; text-transform:uppercase; margin-bottom:8px; opacity:.95; }
+#subs .w { display:inline-block; white-space:pre; animation:drop .42s cubic-bezier(.2,.9,.25,1.15) both; }
+#subs.n .w { color:var(--ink); }
+#subs.e .w { color:#dff8f3; } #subs.e .who { color:var(--elias); }
+#subs.m .w { color:#fff3d1; } #subs.m .who { color:var(--mira); }
+#subs.out { transition:opacity .35s; opacity:0; }
+@keyframes drop { from { opacity:0; transform:translateY(-.6em); filter:blur(6px); } }
+
+/* poster */
+#poster { position:fixed; inset:0; z-index:5; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; text-align:center;
+  padding-block:24px calc(env(safe-area-inset-bottom,0px) + 9vh); padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px));
+  background:linear-gradient(180deg, transparent 35%, rgba(5,7,13,.78) 80%); transition:opacity .9s, visibility .9s; }
+#poster.gone { opacity:0; visibility:hidden; }
+.kicker { font:500 13px/1 var(--ui); letter-spacing:.34em; text-transform:uppercase; color:var(--amber); }
+.ttl { margin:14px 0 0; font:200 clamp(44px,9vw,104px)/.95 var(--ui); letter-spacing:.14em; text-transform:uppercase; text-wrap:balance;
+  background:linear-gradient(180deg,#fff 30%,#ffd88a 120%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.logline { max-width:30em; margin:16px auto 0; color:var(--ink2); font:300 clamp(15px,1.8vw,19px)/1.5 var(--ui); }
+#play { margin-top:28px; display:inline-flex; align-items:center; gap:12px; height:60px; padding:0 30px 0 24px; border-radius:999px; border:0; cursor:pointer;
+  background:#fff; color:#05070d; font:600 18px/1 var(--ui); box-shadow:0 0 0 1px rgba(255,255,255,.2), 0 20px 60px -10px rgba(255,198,92,.55); transition:transform .2s; }
+#play:hover { transform:scale(1.03); } #play:active { transform:scale(.97); }
+#play:focus-visible, #ctl button:focus-visible { outline:3px solid var(--amber); outline-offset:3px; }
+#play svg { width:22px; height:22px; }
+#play[disabled] { opacity:.6; cursor:progress; }
+.meta { margin-top:14px; color:rgba(238,242,251,.45); font:400 13px/1.4 var(--ui); letter-spacing:.02em; }
+
+/* controls */
+#ctl { position:fixed; left:0; right:0; bottom:0; z-index:4; padding:0 max(16px, env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 14px) max(16px, env(safe-area-inset-left,0px));
+  display:flex; align-items:center; gap:14px; opacity:0; transition:opacity .4s; pointer-events:none; }
+#ctl.show { opacity:1; pointer-events:auto; }
+#ctl button { width:44px; height:44px; flex:none; border-radius:50%; border:0; background:rgba(255,255,255,.14); color:#fff; display:grid; place-items:center; cursor:pointer;
+  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); }
+#ctl button svg { width:20px; height:20px; }
+#bar { flex:1; height:4px; border-radius:4px; background:rgba(255,255,255,.18); position:relative; cursor:pointer; touch-action:none; }
+#bar::before { content:''; position:absolute; inset:-14px 0; }
+#bar i { position:absolute; left:0; top:0; bottom:0; border-radius:4px; background:var(--amber); width:0; }
+#time { font:500 13px/1 var(--ui); color:var(--ink2); font-variant-numeric:tabular-nums; min-width:76px; text-align:right; }
+#tip { position:fixed; top:calc(env(safe-area-inset-top,0px) + 14px); left:50%; transform:translateX(-50%); z-index:4; font:500 13px var(--ui); color:var(--ink2);
+  padding:8px 14px; border-radius:999px; background:rgba(255,255,255,.08); white-space:nowrap; transition:opacity .6s; }
+@media (orientation:landscape), (min-width:700px) { #tip { display:none; } }
+@media (prefers-reduced-motion: reduce) { #subs .w { animation:none; } }
+</style>
+
+<canvas id="cv" aria-label="Animated story: The Last Light"></canvas>
+<div id="subs" aria-live="polite"></div>
+<div id="tip">Turn your phone sideways for the big screen</div>
+
+<div id="poster">
+  <div class="kicker">ilan stories&nbsp;&middot;&nbsp;Part 1</div>
+  <h1 class="ttl">The Last Light</h1>
+  <p class="logline">For a hundred years the lighthouse above Saltmere has never gone dark. Tonight, it will.</p>
+  <button id="play" disabled><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg><span id="playT">Loading…</span></button>
+  <div class="meta">3 min&nbsp;&middot;&nbsp;narrated&nbsp;&middot;&nbsp;best with sound on</div>
+</div>
+
+<div id="ctl">
+  <button id="pp" aria-label="Pause"></button>
+  <div id="bar" role="slider" aria-label="Story position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
+  <span id="time">0:00 / 0:00</span>
+</div>
+
+<script>
+(() => {
+'use strict';
+/* ====================== setup ====================== */
+const cv = document.getElementById('cv'), g = cv.getContext('2d');
+const W = 1600, H = 900;
+const subs = document.getElementById('subs');
+let TL = null, audio = new Audio(), ready = false, started = false, poster = true;
+audio.preload = 'auto';
+let stage = { x: 0, y: 0, s: 1, w: 0, h: 0 };
+function resize() {
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr);
+  const s = Math.min(innerWidth / W, innerHeight / H);
+  stage = { s, w: W * s, h: H * s, x: (innerWidth - W * s) / 2, y: (innerHeight - H * s) / 2, dpr };
+  // subtitles: below the picture when there is room (portrait phones), otherwise over its lower part
+  const below = innerHeight - (stage.y + stage.h);
+  if (below > 110) { subs.style.top = (stage.y + stage.h + 22) + 'px'; subs.style.bottom = 'auto'; }
+  else { subs.style.top = 'auto'; subs.style.bottom = (below + stage.h * 0.06 + 40) + 'px'; }
+}
+addEventListener('resize', resize); resize();
+
+/* ====================== helpers ====================== */
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, x) => a + (b - a) * x;
+const ss = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+const ease = x => 1 - Math.pow(1 - clamp(x), 3);
+function rnd(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const ev = n => TL.events.find(e => e.name === n).t;
+const scene = id => TL.scenes.find(s => s.id === id);
+function speaking(who, t) {
+  for (const c of TL.cues) if (c.who === who && t >= c.t0 && t <= c.t1) return .35 + .65 * Math.abs(Math.sin(t * 15.7) * Math.sin(t * 6.1 + 1));
+  return 0;
+}
+function talking(who, t) { return TL.cues.some(c => c.who === who && t >= c.t0 - .2 && t <= c.t1 + .3); }
+function blink(t, seed) { const p = (t + seed * 1.7) % 4.1; return p < .12 ? 1 - Math.abs(p - .06) / .06 : 0; }
+function grad(y0, y1, stops) { const gr = g.createLinearGradient(0, y0, 0, y1); stops.forEach(([o, c]) => gr.addColorStop(o, c)); return gr; }
+function rgrad(x, y, r0, r1, stops) { const gr = g.createRadialGradient(x, y, r0, x, y, r1); stops.forEach(([o, c]) => gr.addColorStop(o, c)); return gr; }
+function rect(x, y, w, h, c) { g.fillStyle = c; g.fillRect(x, y, w, h); }
+function circle(x, y, r, c) { g.beginPath(); g.arc(x, y, r, 0, 7); g.fillStyle = c; g.fill(); }
+function ell(x, y, rx, ry, c, rot = 0) { g.beginPath(); g.ellipse(x, y, rx, ry, rot, 0, 7); g.fillStyle = c; g.fill(); }
+function poly(pts, c) { g.beginPath(); g.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], pts[i + 1]); g.closePath(); g.fillStyle = c; g.fill(); }
+function rr(x, y, w, h, r, c) { g.beginPath(); g.roundRect(x, y, w, h, r); g.fillStyle = c; g.fill(); }
+// camera: put world point (cx,cy) at the centre with zoom z, plus shake
+let shake = 0;
+function cam(cx, cy, z) { const sx = shake ? (Math.random() - .5) * shake : 0, sy = shake ? (Math.random() - .5) * shake : 0; g.translate(W / 2 + sx, H / 2 + sy); g.scale(z, z); g.translate(-cx, -cy); }
+
+/* ====================== world pieces ====================== */
+const STARS = (() => { const r = rnd(4); return Array.from({ length: 260 }, () => ({ x: r() * 2400 - 400, y: r() * 620 - 100, s: r() * 1.6 + .3, p: r() * 6 })); })();
+function sky(t, top, mid, bot, stars = 1, yTop = -400, yBot = 760) {
+  g.fillStyle = grad(yTop, yBot, [[0, top], [.6, mid], [1, bot]]); g.fillRect(-800, yTop, W + 1600, yBot - yTop + 400);
+  if (stars) STARS.forEach(s => { g.globalAlpha = stars * (.45 + .55 * Math.sin(t * 1.3 + s.p) ** 2); circle(s.x, s.y, s.s, '#fff'); });
+  g.globalAlpha = 1;
+}
+function moon(x, y, r, a = 1) {
+  g.globalAlpha = a;
+  circle(x, y, r * 4, 'rgba(180,200,255,.05)'); circle(x, y, r * 2, 'rgba(200,215,255,.08)');
+  circle(x, y, r, '#eef1ff'); circle(x - r * .3, y - r * .2, r * .22, 'rgba(160,170,200,.35)'); circle(x + r * .35, y + r * .3, r * .14, 'rgba(160,170,200,.3)');
+  g.globalAlpha = 1;
+}
+function sea(t, y0, cols, rough = 1, x0 = -900, x1 = W + 900, reflectX = null) {
+  for (let L = 0; L < cols.length; L++) {
+    const yy = y0 + L * 34 * (1 + L * .4), amp = (6 + L * 5) * rough, k = .006 - L * .0009, sp = (.6 + L * .25) * (rough > 1.5 ? 2 : 1);
+    g.beginPath(); g.moveTo(x0, H + 600);
+    for (let x = x0; x <= x1; x += 20) g.lineTo(x, yy + Math.sin(x * k + t * sp + L) * amp + Math.sin(x * k * 2.3 - t * sp * .7) * amp * .4);
+    g.lineTo(x1, H + 600); g.closePath(); g.fillStyle = cols[L]; g.fill();
+    if (reflectX != null && L < 2) { // moon / beam glints
+      g.globalAlpha = .35 - L * .12;
+      for (let i = 0; i < 9; i++) { const w = 70 - i * 6 + Math.sin(t * 2 + i) * 10; rr(reflectX - w / 2 + Math.sin(t + i * 2) * 12, yy + 8 + i * 9, w, 2.5, 2, '#dfe8ff'); }
+      g.globalAlpha = 1;
+    }
+  }
+}
+function cliff(x, y, w, h, c) { poly([x, y + h, x, y + 30, x + w * .12, y + 6, x + w * .3, y, x + w * .62, y + 4, x + w * .85, y + 18, x + w, y + 60, x + w + 40, y + h], c); }
+// lighthouse: base centre (x,y), height h. Returns lamp point.
+function lighthouse(x, y, h, lamp, t, dusk = 0) {
+  const w0 = h * .2, w1 = h * .13, top = y - h;
+  // tower body with stripes
+  g.save(); g.beginPath(); g.moveTo(x - w0 / 2, y); g.lineTo(x - w1 / 2, top); g.lineTo(x + w1 / 2, top); g.lineTo(x + w0 / 2, y); g.closePath(); g.clip();
+  for (let i = 0; i < 6; i++) rect(x - w0, top + i * h / 6, w0 * 2, h / 6 + 1, i % 2 ? '#a83a3f' : '#d9d3c7');
+  const sh = g.createLinearGradient(x - w0 / 2, 0, x + w0 / 2, 0);
+  sh.addColorStop(0, 'rgba(10,14,30,.15)'); sh.addColorStop(.45, 'rgba(255,255,255,.06)'); sh.addColorStop(1, 'rgba(5,8,20,.72)'); g.fillStyle = sh; g.fillRect(x - w0, top, w0 * 2, h);
+  g.fillStyle = `rgba(8,12,30,${.45 - dusk * .25})`; g.fillRect(x - w0, top, w0 * 2, h);
+  // little windows
+  for (let i = 1; i < 5; i++) rr(x - 5, top + i * h / 5.2, 10, 16, 4, lamp > .1 ? `rgba(255,205,120,${.35 + .4 * lamp})` : '#1a2134');
+  g.restore();
+  // gallery + lamp room + dome
+  rect(x - w1 * .85, top - 8, w1 * 1.7, 9, '#1b2032'); for (let i = -5; i <= 5; i++) rect(x + i * w1 * .16 - 1, top - 30, 2.5, 22, '#232a3f'); rect(x - w1 * .85, top - 32, w1 * 1.7, 4, '#232a3f');
+  const lr = top - 30, lh = h * .12, lw = w1 * .95;
+  rect(x - lw / 2, lr - lh, lw, lh, lamp > .05 ? `rgba(255,${200 + 40 * lamp},${130 + 80 * lamp},${.25 + .75 * lamp})` : '#141a2c');
+  for (let i = -1; i <= 1; i++) rect(x + i * lw / 3 - 1.5, lr - lh, 3, lh, '#20263a');
+  poly([x - lw * .62, lr - lh, x, lr - lh - h * .09, x + lw * .62, lr - lh], '#6e2329'); rect(x - 1.5, lr - lh - h * .09 - 18, 3, 18, '#20263a');
+  return { x, y: lr - lh / 2 };
+}
+// rotating beam from lamp. phase in radians; a = strength
+function beam(lx, ly, ph, a, len = 1500) {
+  if (a <= 0) return;
+  const dx = Math.cos(ph), facing = Math.max(0, Math.sin(ph));
+  g.save(); g.globalCompositeOperation = 'lighter';
+  const L = len * (.25 + .75 * Math.abs(dx)), hw = 26 + 70 * (1 - Math.abs(dx));
+  const gr = g.createLinearGradient(lx, ly, lx + dx * L, ly);
+  gr.addColorStop(0, `rgba(255,236,180,${.55 * a})`); gr.addColorStop(1, 'rgba(255,236,180,0)');
+  g.fillStyle = gr; g.beginPath(); g.moveTo(lx, ly - 8); g.lineTo(lx + dx * L, ly - hw); g.lineTo(lx + dx * L, ly + hw); g.lineTo(lx, ly + 8); g.closePath(); g.fill();
+  g.fillStyle = rgrad(lx, ly, 0, 60 + 220 * facing, [[0, `rgba(255,244,210,${a * (.6 + .4 * facing)})`], [.3, `rgba(255,220,140,${a * .25 * (.4 + facing)})`], [1, 'rgba(255,200,120,0)']]);
+  g.fillRect(lx - 300, ly - 300, 600, 600);
+  g.restore();
+}
+function glowAt(x, y, r, col, a) { g.save(); g.globalCompositeOperation = 'lighter'; g.fillStyle = rgrad(x, y, 0, r, [[0, col.replace('A', a)], [1, col.replace('A', 0)]]); g.fillRect(x - r, y - r, r * 2, r * 2); g.restore(); }
+// rain streaks
+const DROPS = (() => { const r = rnd(9); return Array.from({ length: 420 }, () => ({ x: r() * 2200 - 300, y: r() * 1200 - 200, v: .8 + r() * .6, l: 16 + r() * 26 })); })();
+function rainFx(t, a = 1, slant = .22) {
+  g.save(); g.strokeStyle = `rgba(190,210,255,${.32 * a})`; g.lineWidth = 1.6; g.beginPath();
+  DROPS.forEach(d => { const y = ((d.y + t * 1500 * d.v) % 1250) - 200, x = d.x - (y + 200) * slant; g.moveTo(x, y); g.lineTo(x - d.l * slant, y + d.l); });
+  g.stroke(); g.restore();
+}
+function flash(t, times, dur = .5) { let a = 0; times.forEach(t0 => { const d = t - t0; if (d >= 0 && d < dur) a = Math.max(a, (d < .06 ? 1 : d < .12 ? .25 : d < .2 ? .8 : 1 - d / dur) * .85); }); return a; }
+
+/* ====================== characters ====================== */
+// Mira: yellow raincoat, dark bob. (x,y) = feet. s = scale (1 ≈ 300px tall). o = {mouth, blink, look, lantern, arm, smile, back}
+function mira(x, y, s, o = {}) {
+  g.save(); g.translate(x, y); g.scale(s, s);
+  const bob = o.walk ? Math.abs(Math.sin(o.walk * 7)) * 6 : 0; g.translate(0, -bob);
+  // legs + boots
+  const lw = o.walk ? Math.sin(o.walk * 7) * 10 : 0;
+  rr(-24 + lw, -70, 18, 62, 8, '#26314f'); rr(6 - lw, -70, 18, 62, 8, '#26314f');
+  rr(-30 + lw, -14, 30, 16, 7, '#c2412f'); rr(2 - lw, -14, 30, 16, 7, '#c2412f');
+  // coat
+  g.beginPath(); g.moveTo(-34, -190); g.quadraticCurveTo(-58, -110, -62, -62); g.lineTo(62, -62); g.quadraticCurveTo(58, -110, 34, -190); g.closePath();
+  g.fillStyle = grad(-200, -60, [[0, '#ffd75e'], [1, '#f2a91c']]); g.fill();
+  rect(-2, -186, 4, 120, 'rgba(140,80,0,.35)'); [-160, -130, -100].forEach(yy => circle(10, yy, 4, '#9a5d08'));
+  g.fillStyle = 'rgba(120,60,0,.18)'; g.beginPath(); g.moveTo(10, -190); g.quadraticCurveTo(50, -120, 62, -62); g.lineTo(20, -62); g.closePath(); g.fill();
+  // arms
+  const arm = o.arm || 0;
+  g.save(); g.translate(-36, -178); g.rotate(.18 + (o.armL || 0)); rr(-12, 0, 22, 88, 11, '#f5b62c'); circle(-1, 90, 11, '#f1c29a'); g.restore();
+  g.save(); g.translate(36, -178); g.rotate(-.18 - arm); rr(-10, 0, 22, 88, 11, '#eaa51e'); circle(1, 90, 11, '#f1c29a');
+  if (o.lantern) { g.translate(1, 100); lanternDraw(o.lantern); } g.restore();
+  // head
+  g.translate(0, -238 + (o.lookUp ? -4 : 0));
+  if (o.back) { circle(0, 0, 50, '#2a1d1a'); rr(-52, -6, 104, 52, 22, '#2a1d1a'); g.restore(); return; }
+  circle(0, 4, 46, '#f1c29a');
+  // hair: bob + fringe
+  g.fillStyle = '#2a1d1a'; g.beginPath(); g.arc(0, -2, 52, Math.PI * .95, Math.PI * 2.05); g.lineTo(54, 30); g.quadraticCurveTo(46, 44, 36, 40); g.lineTo(38, 2);
+  g.quadraticCurveTo(10, -16, -22, -8); g.quadraticCurveTo(-36, 0, -38, 4); g.lineTo(-36, 40); g.quadraticCurveTo(-46, 44, -54, 30); g.closePath(); g.fill();
+  circle(-30, 18, 7, 'rgba(255,120,110,.28)'); circle(30, 18, 7, 'rgba(255,120,110,.28)');
+  const lk = o.look || 0, bl = o.blink || 0;
+  [-16, 16].forEach(ex => { if (bl > .5) rect(ex - 7 + lk, 6, 14, 3, '#2a1d1a'); else { ell(ex + lk, 7, 6.5, 8 * (1 - bl), '#241816'); circle(ex + lk + 2, 4, 2.2, '#fff'); } });
+  if (o.scared) { g.strokeStyle = '#2a1d1a'; g.lineWidth = 3; g.beginPath(); g.moveTo(-24, -9); g.lineTo(-9, -5); g.moveTo(24, -9); g.lineTo(9, -5); g.stroke(); }
+  const m = o.mouth || 0;
+  if (m > .05) ell(0, 27, 7, 3 + 8 * m, '#7a2e2e');
+  else { g.strokeStyle = '#7a2e2e'; g.lineWidth = 3; g.lineCap = 'round'; g.beginPath(); if (o.smile) g.arc(0, 20, 9, .2, Math.PI - .2); else { g.moveTo(-6, 27); g.lineTo(6, 27); } g.stroke(); }
+  g.restore();
+}
+function lanternDraw(a) {
+  rect(-2, -6, 4, 10, '#333'); rr(-14, 2, 28, 34, 6, '#3a2f22'); rr(-10, 6, 20, 26, 4, `rgba(255,${190 + 50 * a},110,${.6 + .4 * a})`);
+  glowAt(0, 18, 120, 'rgba(255,190,90,A)', .55 * a);
+}
+// Elias: tall, navy coat, white beard, cap. o = {mouth, blink, wet, eyes(0..1 blue glow), lantern, look}
+function elias(x, y, s, o = {}) {
+  g.save(); g.translate(x, y); g.scale(s, s);
+  const coat = o.wet ? ['#1a2c44', '#0e1a2c'] : ['#2b3a5c', '#1a2440'];
+  rr(-28, -80, 22, 76, 8, '#1b1f2b'); rr(6, -80, 22, 76, 8, '#1b1f2b'); rr(-34, -12, 32, 14, 6, '#111'); rr(4, -12, 32, 14, 6, '#111');
+  g.beginPath(); g.moveTo(-44, -250); g.quadraticCurveTo(-70, -150, -66, -70); g.lineTo(66, -70); g.quadraticCurveTo(70, -150, 44, -250); g.closePath();
+  g.fillStyle = grad(-250, -70, [[0, coat[0]], [1, coat[1]]]); g.fill();
+  [-210, -175, -140, -105].forEach(yy => { circle(-12, yy, 4.5, '#c9a45c'); circle(12, yy, 4.5, '#c9a45c'); });
+  g.save(); g.translate(-46, -238); g.rotate(.12); rr(-13, 0, 24, 110, 12, coat[1]); circle(-1, 112, 12, '#e2b48f'); g.restore();
+  g.save(); g.translate(46, -238); g.rotate(-.12 - (o.arm || 0)); rr(-11, 0, 24, 110, 12, coat[1]); circle(1, 112, 12, '#e2b48f');
+  if (o.lantern) { g.translate(1, 122); lanternDraw(o.lantern); } g.restore();
+  g.translate(0, -300);
+  circle(0, 0, 48, o.wet ? '#c9a993' : '#e2b48f');
+  // beard
+  g.fillStyle = '#eef0f3'; g.beginPath(); g.moveTo(-44, 4); g.quadraticCurveTo(-50, 70, 0, 92); g.quadraticCurveTo(50, 70, 44, 4); g.quadraticCurveTo(0, 30, -44, 4); g.fill();
+  ell(-14, 26, 16, 7, '#eef0f3', -.2); ell(14, 26, 16, 7, '#eef0f3', .2);
+  const m = o.mouth || 0; if (m > .05) ell(0, 40, 9, 2 + 7 * m, '#5a2a2a');
+  // cap
+  g.fillStyle = '#1c2336'; g.beginPath(); g.arc(0, -14, 50, Math.PI, 0); g.fill(); rr(-54, -18, 108, 12, 6, '#121828'); rr(-30, -46, 60, 8, 4, '#c9a45c');
+  // brows + eyes
+  rr(-30, -6, 22, 7, 3, '#e5e7ea'); rr(8, -6, 22, 7, 3, '#e5e7ea');
+  const lk = o.look || 0, bl = o.blink || 0, ge = o.eyes || 0;
+  [-18, 18].forEach(ex => {
+    if (ge > 0) { glowAt(ex + lk, 10, 22, 'rgba(80,210,255,A)', .45 * ge); circle(ex + lk, 10, 6, `rgba(150,240,255,${.6 + .4 * ge})`); circle(ex + lk, 10, 2.5, '#fff'); }
+    else if (bl > .5) rect(ex - 6 + lk, 9, 12, 3, '#222'); else circle(ex + lk, 10, 5, '#1d1d24');
+  });
+  if (o.wet) { g.fillStyle = 'rgba(150,220,255,.55)'; for (let i = 0; i < 5; i++) { const dy = ((o.t || 0) * 60 + i * 37) % 130; ell(-40 + i * 20, 40 + dy, 2.5, 5, g.fillStyle); } }
+  g.restore();
+}
+
+/* ====================== scenes ====================== */
+const SC = {};
+// 1. title: wide night seascape, slow push in, title card
+SC.title = (lt, t, d) => {
+  g.save(); cam(lerp(820, 1000, ease(lt / d)), lerp(450, 420, ease(lt / d)), lerp(1, 1.12, ease(lt / d)));
+  sky(t, '#02040b', '#0b1633', '#1b2a52'); moon(380, 170, 34);
+  cliff(1020, 560, 700, 500, '#070a14');
+  const L = lighthouse(1250, 575, 330, 1, t);
+  sea(t, 590, ['#0d1b3a', '#0a1530', '#081027', '#060c1d'], 1, -900, W + 900, 380);
+  // town lights at the foot of the cliff
+  const r = rnd(3); for (let i = 0; i < 16; i++) { const x = 1100 + r() * 420, y = 640 + r() * 60; rr(x, y, 6, 6, 1, `rgba(255,200,120,${.4 + .4 * Math.sin(t * 2 + i) ** 2})`); }
+  beam(L.x, L.y, t * 1.1, 1);
+  g.restore();
+  // title text
+  const a = poster ? 0 : ss(2.2, 5, t) * (1 - ss(11.5, 13.5, t));
+  if (a > 0) {
+    g.save(); g.globalAlpha = a; g.textAlign = 'center'; g.fillStyle = '#fff';
+    g.font = '200 110px Outfit, sans-serif'; g.letterSpacing = (24 - 10 * ss(2.2, 12, t)) + 'px';
+    g.shadowColor = 'rgba(255,200,110,.6)'; g.shadowBlur = 40; g.fillText('THE LAST LIGHT', W / 2, 350);
+    g.shadowBlur = 0; g.font = '500 20px Outfit, sans-serif'; g.letterSpacing = '9px'; g.fillStyle = '#ffc65c'; g.fillText('PART ONE', W / 2, 410);
+    g.restore();
+  }
+};
+// 2. keeper: dusk at the tower door, Elias with lantern, Mira runs up; camera tilts up the tower
+SC.keeper = (lt, t, d) => {
+  const k = ease(lt / d);
+  g.save(); cam(800, lerp(560, 330, ss(.45, 1, lt / d)), lerp(1.15, 1, k));
+  sky(t, '#130f2e', '#4a2c5c', '#c06a5a', .4, -500, 700); moon(1300, 120, 26, .6);
+  sea(t, 690, ['#2a2550', '#1e1b40', '#141232'], .7, -900, W + 900);
+  poly([-200, 900, -200, 700, 300, 660, 1300, 650, 1900, 700, 1900, 900], '#1a1328');
+  const L = lighthouse(800, 690, 720, .4, t, 1);
+  rr(770, 610, 60, 80, [30, 30, 0, 0], '#2a1a14'); rr(776, 616, 48, 74, [26, 26, 0, 0], 'rgba(255,190,110,.55)');
+  // path
+  poly([830, 690, 1500, 700, 1500, 712, 830, 698], 'rgba(255,230,200,.08)');
+  elias(745, 692, .58, { lantern: 1, blink: blink(t, 1), arm: .35 });
+  const mx = lerp(1450, 880, ease(lt / (d * .7)));
+  mira(mx, 700, .5, { walk: lt < d * .7 ? t : 0, blink: blink(t, 2), smile: 1 });
+  g.restore();
+};
+// 3. rules: inside the lamp room. shot / reverse shot following who is speaking
+let ruleCam = { x: 800, z: 1 };
+SC.rules = (lt, t, d) => {
+  const eT = talking('E', t), mT = talking('M', t);
+  const tx = eT ? 560 : mT ? 1040 : 800, tz = eT || mT ? 1.32 : 1.05;
+  ruleCam.x = lerp(ruleCam.x, tx, .04); ruleCam.z = lerp(ruleCam.z, tz, .04);
+  g.save(); cam(ruleCam.x, 470, ruleCam.z);
+  // window to the night sea
+  rect(-300, -200, 2200, 1300, '#121726');
+  g.save(); g.beginPath(); g.rect(160, 120, 1280, 470); g.clip();
+  sky(t, '#050914', '#0d1a38', '#173062', 1, 100, 520); moon(1250, 200, 24);
+  sea(t, 470, ['#0c1a3a', '#0a1430', '#071024'], 1, 100, 1500, 1250);
+  // foreshadow: two blue eyes in the sea on "looks back"
+  const lb = TL.cues.find(c => c.text.startsWith('Because the sea')); const fa = lb ? ss(lb.t0 + .8, lb.t0 + 1.4, t) * (1 - ss(lb.t1 + .8, lb.t1 + 2.2, t)) : 0;
+  if (fa > 0) { glowAt(700, 540, 60, 'rgba(70,200,255,A)', fa); glowAt(790, 540, 60, 'rgba(70,200,255,A)', fa); circle(700, 540, 6, `rgba(190,245,255,${fa})`); circle(790, 540, 6, `rgba(190,245,255,${fa})`); }
+  g.restore();
+  for (let i = 0; i <= 4; i++) rect(156 + i * 320, 110, 10, 490, '#1d2233'); rect(150, 110, 1300, 14, '#1d2233'); rect(150, 590, 1300, 18, '#1d2233');
+  // the great lens (centre)
+  const pulse = .85 + .15 * Math.sin(t * 2);
+  glowAt(800, 470, 420, 'rgba(255,190,90,A)', .55 * pulse);
+  for (let i = 6; i >= 1; i--) ell(800, 470, 34 * i, 50 * i, `rgba(255,${200 + i * 6},${120 + i * 15},${.08 + (6 - i) * .03})`);
+  rr(740, 400, 120, 140, 30, `rgba(255,240,200,${.75 * pulse})`); rect(720, 690, 160, 120, '#2a3046'); rect(700, 670, 200, 24, '#363d57');
+  // floor
+  rect(-300, 800, 2200, 400, '#1a1f30'); g.fillStyle = 'rgba(255,190,90,.06)'; g.fillRect(-300, 800, 2200, 30);
+  elias(520, 840, .95, { mouth: speaking('E', t), blink: blink(t, 1), look: 6 });
+  mira(1060, 840, .82, { mouth: speaking('M', t), blink: blink(t, 3), look: -5, smile: TL.cues.some(c => c.text.startsWith('Mira laughed') && t > c.t0) });
+  g.restore();
+  // warm vignette
+  g.fillStyle = rgrad(W / 2, H / 2, 300, 1000, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.55)']]); g.fillRect(0, 0, W, H);
+};
+// 4. storm: rain, lightning, beam dies
+SC.storm = (lt, t, d) => {
+  const fl = flash(t, [ev('thunder'), ev('thunder2'), ev('thunder2') + .3]);
+  shake = fl * 10;
+  g.save(); cam(860, 430, lerp(1.0, 1.1, lt / d));
+  sky(t, '#04060c', '#0d1424', '#1a2236', 0);
+  // storm clouds
+  const r = rnd(5); for (let i = 0; i < 22; i++) ell((r() * 2000 - 200 + t * 30 * (r() + .3)) % 2200 - 300, r() * 260 - 20, 240 + r() * 200, 70 + r() * 50, `rgba(${20 + i},${26 + i},${44 + i},.85)`);
+  cliff(980, 560, 760, 500, '#05070e');
+  const out = ev('lightOut'), lamp = t < out ? 1 : Math.max(0, (Math.sin((t - out) * 40) > 0 ? .6 : 0) * (1 - (t - out) / .8));
+  const L = lighthouse(1230, 575, 330, lamp, t);
+  sea(t, 590, ['#0f1a30', '#0b1528', '#08101f', '#050a16'], 2.4);
+  beam(L.x, L.y, t * 1.1, lamp);
+  rainFx(t, 1);
+  g.restore();
+  if (fl > 0) { g.fillStyle = `rgba(220,230,255,${fl * .75})`; g.fillRect(0, 0, W, H); }
+  shake = 0;
+};
+// 5. bedroom: dark, lightning in the window, Mira wakes; pan to empty chair and swinging door
+SC.bedroom = (lt, t, d) => {
+  const panT = TL.cues.find(c => c.text.startsWith('His chair')).t0;
+  const px = lerp(560, 1120, ss(panT - .4, panT + 1.4, t));
+  const calling = TL.cues.find(c => c.text.startsWith('Grandpa! Where'));
+  const fl = flash(t, [d * 0 + scene('bedroom').t0 + 6.5]);
+  g.save(); cam(px, 470, 1.1);
+  rect(-300, -200, 2200, 1400, '#0d1220');
+  // window with rain
+  g.save(); g.beginPath(); g.rect(300, 180, 330, 300); g.clip(); sky(t, '#05070d', '#0b1222', '#121a2e', .2, 150, 500); rainFx(t, .8, .1);
+  if (fl) { g.fillStyle = `rgba(220,230,255,${fl})`; g.fillRect(300, 180, 330, 300); } g.restore();
+  rect(296, 176, 338, 10, '#232a40'); rect(296, 476, 338, 14, '#232a40'); rect(460, 180, 8, 300, '#232a40');
+  // light from window on the floor
+  g.fillStyle = `rgba(150,170,230,${.05 + fl * .3})`; poly([300, 480, 630, 480, 760, 820, 240, 820], g.fillStyle);
+  rect(-300, 800, 2200, 400, '#121828');
+  // bed
+  rr(200, 640, 520, 120, 18, '#2a2f4a'); rr(180, 590, 50, 200, 14, '#3a2a22'); rr(240, 600, 120, 50, 20, '#d8dcef');
+  const sit = ss(scene('bedroom').t0 + .8, scene('bedroom').t0 + 2.2, t), stand = calling ? ss(calling.t0 - 1.2, calling.t0, t) : 0;
+  if (stand < .5) {
+    g.save(); g.translate(420, 690 - sit * 40); mira(0, 0, .55, { blink: blink(t, 3), mouth: speaking('M', t), scared: 1, look: 4 }); g.restore();
+    rr(300, 660, 400, 90, 26, '#4b5a92'); // blanket over legs
+  } else rr(300, 660, 400, 90, 26, '#4b5a92');
+  // armchair (empty) + side table with cold pipe
+  rr(980, 600, 220, 200, 30, '#4a2f2a'); rr(960, 560, 60, 230, 24, '#5a3a33'); rr(1160, 560, 60, 230, 24, '#5a3a33'); rr(1000, 500, 180, 140, 30, '#5a3a33');
+  // door swinging
+  const swing = Math.sin(t * 2.2) * .35 + Math.sin(t * 5.1) * .08;
+  rect(1330, 300, 220, 500, '#05070c'); g.fillStyle = 'rgba(80,110,180,.15)'; g.fillRect(1330, 300, 220, 500);
+  g.save(); g.translate(1330, 300); g.transform(Math.cos(swing) * .9 + .1, 0, 0, 1, 0, 0); rr(0, 0, 220, 500, 6, '#3a2a24'); rr(20, 24, 180, 200, 6, '#33251f'); rr(20, 260, 180, 210, 6, '#33251f'); circle(195, 260, 8, '#c9a45c'); g.restore();
+  if (stand >= .5) mira(lerp(700, 860, stand), 820, .7, { mouth: speaking('M', t), blink: blink(t, 3), scared: 1, look: 8, lantern: 0 });
+  g.restore();
+  g.fillStyle = rgrad(W / 2, H / 2, 250, 950, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.7)']]); g.fillRect(0, 0, W, H);
+};
+// 6. stairs: spiral stairs scroll by as the camera rises with Mira and her lantern
+SC.stairs = (lt, t, d) => {
+  rect(0, 0, W, H, '#07090f');
+  const rise = lt * 260;
+  g.save(); g.translate(0, rise % 180);
+  // stone wall
+  for (let row = -2; row < 8; row++) for (let c = 0; c < 9; c++) rr(c * 200 + (row % 2) * 100 - 100, row * 90 - 90, 194, 84, 8, '#151a26');
+  // steps spiral: steps descending left→right
+  for (let i = -3; i < 12; i++) { const y = i * 90 - 40, x = 300 + ((i * 230) % 1000 + 1000) % 1000; rr(x, y, 300, 26, 6, '#262d40'); rr(x, y + 26, 300, 12, 4, '#111520'); }
+  g.restore();
+  // step numbers on the wall (50 / 100 / 200)
+  ['Fifty steps.', 'One hundred.', 'Two hundred.'].forEach((txt, i) => {
+    const c = TL.cues.find(q => q.text === txt); if (!c) return;
+    const a = ss(c.t0, c.t0 + .3, t) * (1 - ss(c.t1 + .5, c.t1 + 1.2, t));
+    if (a > 0) { g.save(); g.globalAlpha = a * .5; g.font = '200 240px Outfit, sans-serif'; g.textAlign = 'center'; g.fillStyle = '#ffd9a0'; g.fillText(['50', '100', '200'][i], W / 2 + (i - 1) * 380, 520); g.restore(); }
+  });
+  mira(800, 720 + Math.sin(t * 7) * 4, .9, { walk: t, lantern: 1, arm: .9, blink: blink(t, 5), look: -4, lookUp: 1 });
+  // lantern light: darkness everywhere except a pool around her
+  g.fillStyle = rgrad(840, 560, 120, 640, [[0, 'rgba(0,0,0,0)'], [.55, 'rgba(0,0,0,.55)'], [1, 'rgba(0,0,0,.95)']]); g.fillRect(0, 0, W, H);
+};
+// 7. logbook: cold lamp room, then the open book being written
+SC.logbook = (lt, t, d) => {
+  const w0 = ev('write'), cu = TL.cues.find(c => c.text.startsWith('If you are reading'));
+  const zoom = ss(w0 - 1.8, w0 + .2, t);
+  g.save(); cam(lerp(800, 800, zoom), lerp(470, 700, zoom), lerp(1.05, 2.6, ease(zoom)));
+  rect(-300, -200, 2200, 1400, '#0b0f1a');
+  g.save(); g.beginPath(); g.rect(160, 120, 1280, 470); g.clip(); sky(t, '#040610', '#0a1226', '#101c3a', .8, 100, 520); rainFx(t, .3, .05); g.restore();
+  for (let i = 0; i <= 4; i++) rect(156 + i * 320, 110, 10, 490, '#1a1e2c'); rect(150, 590, 1300, 18, '#1a1e2c');
+  // cold lens
+  for (let i = 6; i >= 1; i--) ell(800, 470, 34 * i, 50 * i, `rgba(120,140,190,${.03 + (6 - i) * .015})`);
+  rect(-300, 800, 2200, 400, '#121726');
+  // table + book
+  rr(560, 640, 480, 30, 8, '#3a2a22'); rect(590, 670, 24, 160, '#2d211b'); rect(986, 670, 24, 160, '#2d211b');
+  g.save(); g.translate(800, 650); g.rotate(-.04);
+  poly([-170, -6, 0, 0, 0, -120, -165, -128], '#efe6d2'); poly([170, -6, 0, 0, 0, -120, 165, -128], '#f4ecda'); rect(-2, -122, 4, 122, 'rgba(0,0,0,.15)');
+  for (let i = 0; i < 6; i++) rect(14, -104 + i * 17, 140, 1, 'rgba(60,80,120,.25)');
+  // handwriting appears letter by letter in sync with the line
+  if (cu) {
+    const full = 'If you are reading this, the light has gone out. Light it again. Quickly. Before they wake up.';
+    const n = Math.floor(full.length * clamp((t - cu.t0) / (cu.t1 - cu.t0)));
+    const lines = ['If you are reading this,', 'the light has gone out.', 'Light it again.', 'Quickly.', 'Before they wake up.'];
+    let left = n; g.font = 'italic 300 12.5px Outfit, sans-serif'; g.fillStyle = '#2a3552';
+    lines.forEach((ln, i) => { const take = Math.max(0, Math.min(ln.length, left)); left -= ln.length + 1; if (take) g.fillText(ln.slice(0, take), 16, -106 + i * 17); });
+    g.font = 'italic 300 12px Outfit, sans-serif'; g.fillStyle = 'rgba(40,50,80,.6)'; g.fillText('Night 36,524', -150, -106);
+  }
+  g.restore();
+  glowAt(800, 600, 260, 'rgba(160,190,255,A)', .12);
+  g.restore();
+  g.fillStyle = rgrad(W / 2, H / 2, 200, 950, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.75)']]); g.fillRect(0, 0, W, H);
+};
+// 8. relight: hands + matches, the whoosh, then Mira at the window looking at the sea
+SC.relight = (lt, t, d) => {
+  const wh = ev('whoosh'), m1 = ev('match1'), m2 = ev('match2');
+  const look = TL.cues.find(c => c.text === 'She looked at the sea.');
+  if (t < wh + 2.2) {
+    // close-up hands
+    const lit = t > wh ? 1 : 0;
+    rect(0, 0, W, H, '#0a0d16');
+    if (!lit) {
+      // two hands holding a match + box
+      rr(520, 560, 300, 140, 30, '#e7b994'); rr(860, 520, 280, 150, 30, '#e7b994'); rr(760, 560, 170, 80, 10, '#b23a2a'); rr(770, 570, 150, 60, 8, '#d1513d');
+      g.save(); g.translate(760, 590); g.rotate(-.5 + Math.sin(t * 9) * .03 * (t < m2 ? 1 : 0)); rect(-200, -5, 200, 10, '#e9d7b0'); circle(-200, 0, 10, '#9c2b20');
+      const spark1 = t > m1 && t < m1 + .35, flame = t > m2;
+      if (spark1) { glowAt(-205, 0, 90, 'rgba(255,200,120,A)', .9 * (1 - (t - m1) / .35)); for (let i = 0; i < 8; i++) circle(-205 + Math.cos(i) * 40 * (t - m1) * 6, Math.sin(i * 2) * 30 * (t - m1) * 6, 2, '#ffd27a'); }
+      if (flame) { const f = Math.min(1, (t - m2) * 4); g.save(); g.translate(-210, -2);
+        ell(0, -18 * f, 13 * f, 30 * f, 'rgba(255,170,60,.9)'); ell(0, -12 * f, 7 * f, 18 * f, 'rgba(255,240,190,.95)'); g.restore(); glowAt(-210, -20, 380, 'rgba(255,170,80,A)', .7 * f); }
+      g.restore();
+      g.fillStyle = rgrad(560, 560, 80, 900, [[0, 'rgba(0,0,0,0)'], [1, `rgba(0,0,0,${t > m2 ? .55 : .85})`]]); g.fillRect(0, 0, W, H);
+    } else {
+      // WHOOSH: exterior, beam blasts across the sea
+      const k = t - wh;
+      g.save(); shake = Math.max(0, 14 * (1 - k)); cam(1000, 420, lerp(1.25, 1.05, ease(k / 2)));
+      sky(t, '#04070f', '#0b1530', '#14244a'); moon(300, 160, 28);
+      cliff(980, 560, 760, 500, '#05070e');
+      const L = lighthouse(1230, 575, 330, 1, t);
+      sea(t, 590, ['#102244', '#0c1b38', '#09142c', '#060e20'], 1.2, -900, W + 900, 700);
+      g.save(); g.globalCompositeOperation = 'lighter';
+      const len = 2400 * ease(k / .6);
+      const gr = g.createLinearGradient(L.x, L.y, L.x - len, L.y); gr.addColorStop(0, 'rgba(255,245,210,.9)'); gr.addColorStop(1, 'rgba(255,230,170,0)');
+      g.fillStyle = gr; g.beginPath(); g.moveTo(L.x, L.y - 10); g.lineTo(L.x - len, L.y - 120); g.lineTo(L.x - len, L.y + 120); g.lineTo(L.x, L.y + 10); g.fill();
+      g.restore(); glowAt(L.x, L.y, 600, 'rgba(255,240,200,A)', 1 - ss(0, 1.8, k) * .6);
+      g.restore(); shake = 0;
+      g.fillStyle = `rgba(255,250,235,${Math.max(0, 1 - k * 2.2)})`; g.fillRect(0, 0, W, H);
+    }
+  } else {
+    // Mira at the window, seen from behind, beam sweeping outside
+    const k = t - (wh + 2.2);
+    g.save(); cam(800, 470, lerp(1.0, 1.18, ease(k / 12)));
+    rect(-300, -200, 2200, 1400, '#151a29');
+    g.save(); g.beginPath(); g.rect(160, 120, 1280, 470); g.clip();
+    sky(t, '#050914', '#0d1a38', '#173062', 1, 100, 520); moon(1250, 190, 24);
+    sea(t, 470, ['#0c1a3a', '#0a1430', '#071024'], 1, 100, 1500, 1250);
+    if (look) { const a = ss(look.t0, look.t1 + 1, t); for (let i = 0; i < 18; i++) { const r = rnd(i + 30); circle(200 + r() * 1200, 520 + r() * 60, 2 + r() * 2, `rgba(90,210,255,${a * (.3 + .5 * Math.sin(t * 2 + i) ** 2)})`); } }
+    beam(800, 300, t * 1.2 + 1.5, .7, 1200);
+    g.restore();
+    for (let i = 0; i <= 4; i++) rect(156 + i * 320, 110, 10, 490, '#1d2233'); rect(150, 110, 1300, 14, '#1d2233'); rect(150, 590, 1300, 18, '#1d2233');
+    glowAt(800, 900, 700, 'rgba(255,200,110,A)', .35);
+    rect(-300, 800, 2200, 400, '#1a1f30');
+    mira(800, 880, 1.05, { back: 1 });
+    g.restore();
+  }
+};
+// 9. city: the camera sinks below the waves; a city of lights wakes up
+const CITY = (() => { const r = rnd(77), b = []; for (let i = 0; i < 46; i++) { const w = 40 + r() * 90, h = 80 + r() * 380; b.push({ x: -100 + r() * 1800, w, h, dome: r() < .3, spire: r() < .35, d: r(), win: Array.from({ length: Math.floor(h / 40) * 2 }, () => r()) }); } return b.sort((a, c) => a.d - c.d); })();
+const BUBBLES = (() => { const r = rnd(12); return Array.from({ length: 60 }, () => ({ x: r() * 1700, s: 2 + r() * 6, v: 30 + r() * 60, p: r() * 900 })); })();
+SC.city = (lt, t, d) => {
+  const dive = ease(clamp(lt / 3.2));
+  g.save(); cam(800, lerp(300, 1050, dive), lerp(1, 1.05, lt / d));
+  sky(t, '#04070f', '#0b1530', '#14244a', 1, -400, 600);
+  beam(1400, 200, t * 1.2, .6, 1600);
+  // water body
+  g.fillStyle = grad(560, 1700, [[0, '#0b3a5c'], [.35, '#072640'], [1, '#020a16']]); g.fillRect(-400, 560, 2400, 1300);
+  sea(t, 540, ['rgba(20,70,110,.9)'], 1, -900, W + 900);
+  // god rays
+  g.save(); g.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 7; i++) { const x = 100 + i * 230 + Math.sin(t * .3 + i) * 40; g.fillStyle = grad(560, 1400, [[0, 'rgba(120,200,255,.10)'], [1, 'rgba(120,200,255,0)']]); poly([x, 560, x + 60, 560, x + 220, 1500, x + 80, 1500], g.fillStyle); }
+  g.restore();
+  // city
+  const wake = ss(1.5, d - 2, lt);
+  CITY.forEach((b, i) => {
+    const base = 1620 - b.d * 60, y = base - b.h, shade = 10 + b.d * 18;
+    const col = `rgb(${shade},${shade + 18},${shade + 40})`;
+    rr(b.x, y, b.w, b.h + 200, 6, col);
+    if (b.dome) { g.beginPath(); g.arc(b.x + b.w / 2, y, b.w / 2, Math.PI, 0); g.fillStyle = col; g.fill(); }
+    if (b.spire) poly([b.x + b.w / 2 - 6, y - (b.dome ? b.w / 2 : 0), b.x + b.w / 2, y - 90 - (b.dome ? b.w / 2 : 0), b.x + b.w / 2 + 6, y - (b.dome ? b.w / 2 : 0)], col);
+    b.win.forEach((r0, k) => {
+      const on = wake * 1.25 - r0 * .9 - b.d * .2; if (on <= 0) return;
+      const a = clamp(on * 3) * (.65 + .35 * Math.sin(t * 2 + k));
+      rr(b.x + 10 + (k % 2) * (b.w / 2 - 6), y + 16 + Math.floor(k / 2) * 40, Math.max(6, b.w / 2 - 22), 18, 4, `rgba(110,225,255,${a})`);
+    });
+    if (b.spire && wake > b.d) glowAt(b.x + b.w / 2, y - 90 - (b.dome ? b.w / 2 : 0), 50, 'rgba(110,225,255,A)', .8 * clamp((wake - b.d) * 4));
+  });
+  glowAt(800, 1500, 900, 'rgba(60,180,255,A)', .25 * wake);
+  // bubbles
+  BUBBLES.forEach(b => { const y = 1650 - ((b.p + t * b.v) % 1100); g.strokeStyle = 'rgba(180,230,255,.35)'; g.lineWidth = 1.5; g.beginPath(); g.arc(b.x + Math.sin(t + b.p) * 10, y, b.s, 0, 7); g.stroke(); });
+  g.restore();
+  g.fillStyle = rgrad(W / 2, H / 2, 300, 1000, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,4,12,.6)']]); g.fillRect(0, 0, W, H);
+};
+// 10. figure: rocks at the base, someone walks out of the waves; Mira small in the window above
+SC.figure = (lt, t, d) => {
+  const up = ss(.5, 4.6, lt);
+  g.save(); cam(860, 520, lerp(1.0, 1.08, lt / d));
+  sky(t, '#04070f', '#0a1430', '#122247', .8, -400, 600);
+  glowAt(800, 760, 900, 'rgba(60,190,255,A)', .25);
+  // tower base on the right with a lit window and tiny Mira
+  for (let i = 0; i < 5; i++) rect(1250, -100 + i * 180, 320, 181, i % 2 ? '#a83a3f' : '#d9d3c7'); g.fillStyle = g.createLinearGradient(1250, 0, 1570, 0); g.fillStyle = (() => { const q = g.createLinearGradient(1250, 0, 1570, 0); q.addColorStop(0, 'rgba(6,10,26,.45)'); q.addColorStop(1, 'rgba(6,10,26,.85)'); return q; })(); g.fillRect(1250, -100, 320, 900); rr(1360, 160, 70, 100, 30, 'rgba(255,200,110,.8)');
+  mira(1395, 262, .27, { mouth: speaking('M', t), scared: 1 });
+  sea(t, 640, ['#0d2a4a', '#0a2140', '#071833'], 1.1, -900, W + 900, 600);
+  // rocks
+  poly([150, 900, 260, 720, 420, 690, 600, 730, 720, 900], '#0a0e18'); poly([900, 900, 980, 760, 1130, 740, 1250, 800, 1300, 900], '#0a0e18');
+  // the figure rises from the water: silhouette with glowing eyes
+  g.save(); g.beginPath(); g.rect(-400, -400, 2400, 640 + 400 + Math.sin(t * 1.2) * 6); g.clip();
+  g.globalAlpha = .96; g.filter = 'none';
+  const fy = lerp(1180, 760, up);
+  g.save(); g.translate(600, fy); g.scale(.85, .85);
+  // silhouette
+  g.fillStyle = '#04070d';
+  g.beginPath(); g.moveTo(-66, 0); g.quadraticCurveTo(-74, -150, -50, -238); g.quadraticCurveTo(0, -262, 50, -238); g.quadraticCurveTo(74, -150, 66, 0); g.fill();   // coat
+  g.save(); g.translate(-50, -232); g.rotate(.18); rr(-13, 0, 26, 120, 13, '#04070d'); g.restore(); g.save(); g.translate(50, -232); g.rotate(-.18); rr(-13, 0, 26, 120, 13, '#04070d'); g.restore();
+  circle(0, -296, 46, '#04070d'); g.beginPath(); g.moveTo(-42, -290); g.quadraticCurveTo(-46, -230, 0, -214); g.quadraticCurveTo(46, -230, 42, -290); g.fill();   // head + beard
+  g.beginPath(); g.arc(0, -312, 50, Math.PI, 0); g.fill(); rr(-56, -318, 112, 12, 6, '#04070d');   // cap
+  g.strokeStyle = 'rgba(90,200,255,.35)'; g.lineWidth = 3; g.beginPath(); g.moveTo(-50, -238); g.quadraticCurveTo(-74, -150, -66, 0); g.stroke();   // rim light
+  [-17, 17].forEach(ex => { glowAt(ex, -296, 34, 'rgba(80,210,255,A)', .8); circle(ex, -296, 5, '#d6f8ff'); });
+  g.restore(); g.restore();
+  // foam around his waist line
+  g.globalAlpha = up * .6; ell(600, 645, 120, 12, 'rgba(200,240,255,.5)'); g.globalAlpha = 1;
+  g.restore();
+};
+// 11. twist: close-ups, shot / reverse. Elias soaked with glowing eyes; the boom turns everything blue
+let twCam = 0;
+SC.twist = (lt, t, d) => {
+  const boom = ev('boom'), b = t - boom;
+  const mT = talking('M', t);
+  twCam = lerp(twCam, mT ? 1 : 0, .06);
+  shake = b > 0 && b < .7 ? 16 * (1 - b / .7) : 0;
+  const blue = ss(boom, boom + 1.5, t);
+  g.save();
+  // background: night sea with glow, gets bluer after the boom
+  g.fillStyle = grad(0, H, [[0, '#03060e'], [1, `rgb(${8 - blue * 6},${30 + blue * 40},${60 + blue * 80})`]]); g.fillRect(0, 0, W, H);
+  g.restore();
+  g.save();
+  if (twCam < .5) {
+    cam(800, 470, lerp(1.0, 1.2, clamp(lt / d)));
+    glowAt(800, 760, 760, 'rgba(60,200,255,A)', .22 + blue * .3);
+    elias(800, 1150, 2.0, { mouth: speaking('E', t), blink: 0, wet: 1, eyes: .85 + .15 * Math.sin(t * 3), t });
+    // cold blue light from the sea on his face (soft, multiply-free tint)
+    g.save(); g.globalAlpha = .16 + blue * .14; g.fillStyle = '#2a8cc8'; g.globalCompositeOperation = 'soft-light'; g.fillRect(0, -200, W, H + 400); g.restore();
+  } else {
+    cam(800, 470, 1.15);
+    glowAt(800, 260, 700, 'rgba(255,200,110,A)', .18);
+    mira(800, 1010, 2.05, { mouth: speaking('M', t), blink: blink(t, 4), scared: 1, look: 0 });
+  }
+  g.restore(); shake = 0;
+  if (b > 0 && b < .5) { g.fillStyle = `rgba(80,200,255,${.35 * (1 - b / .5)})`; g.fillRect(0, 0, W, H); }
+  g.fillStyle = rgrad(W / 2, H / 2, 280, 950, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.7)']]); g.fillRect(0, 0, W, H);
+};
+// 12. hand: Mira looks at her palm in the flickering beam; it starts glowing blue
+SC.hand = (lt, t, d) => {
+  const gl = ss(ev('glow'), ev('glow') + 2.5, t);
+  const flick = (Math.sin(t * 23) > .2 ? 1 : .4) * (Math.sin(t * 3.1) > -.6 ? 1 : .2);
+  rect(0, 0, W, H, '#05070c');
+  g.save(); cam(800, 460, lerp(1.0, 1.25, ease(lt / d)));
+  glowAt(800, 300, 700, 'rgba(255,210,140,A)', .22 * flick * (1 - gl * .6));
+  // open palm (blue glow sits behind it)
+  if (gl > 0) glowAt(800, 520, 420, 'rgba(70,200,255,A)', .5 * gl);
+  g.save(); g.translate(800, 560); g.rotate(-.08);
+  rr(-140, -40, 280, 300, 110, '#e8b993'); // palm + wrist
+  rr(-90, 230, 180, 300, 40, '#f2b52f'); // raincoat sleeve
+  [[-118, -190, 46, 190, -.2], [-48, -260, 48, 250, -.05], [22, -270, 48, 260, .03], [86, -220, 44, 210, .14]].forEach(([x, y, w, h, r]) => { g.save(); g.rotate(r); rr(x, y, w, h, 24, '#e8b993'); g.restore(); });
+  g.save(); g.rotate(.7); rr(110, -60, 50, 170, 24, '#e2b08a'); g.restore();
+  g.strokeStyle = 'rgba(150,90,60,.35)'; g.lineWidth = 4; g.beginPath(); g.moveTo(-90, 70); g.quadraticCurveTo(0, 30, 100, 60); g.moveTo(-100, 140); g.quadraticCurveTo(-20, 110, 60, 170); g.stroke();
+  if (gl > 0) {
+    // blue glow spreading through veins
+    // thin glowing veins growing from the wrist into the palm and fingers
+    g.save(); g.lineCap = 'round'; g.lineJoin = 'round'; g.shadowColor = 'rgba(80,220,255,.9)'; g.shadowBlur = 14;
+    const VE = [[-70, -150], [-25, -215], [25, -225], [85, -175], [-110, 20], [110, 0]];
+    VE.forEach(([ex, ey], i) => { const k = clamp(gl * 1.4 - i * .07); if (k <= 0) return;
+      g.strokeStyle = `rgba(120,230,255,${.85 * k})`; g.lineWidth = 3.2;
+      g.beginPath(); g.moveTo(ex * .15, 230); g.bezierCurveTo(ex * .3, 120, ex * .8, 40, lerp(ex * .15, ex, k), lerp(230, ey, k)); g.stroke(); });
+    g.restore();
+    g.save(); g.globalCompositeOperation = 'soft-light'; g.globalAlpha = .55 * gl; g.fillStyle = '#39c6ff'; g.beginPath(); g.ellipse(0, 60, 170, 230, 0, 0, 7); g.fill(); g.restore();
+  }
+  g.restore();
+  // drifting blue sparks
+  if (gl > 0) for (let i = 0; i < 40; i++) { const r = rnd(i + 200); const y = 700 - ((r() * 600 + t * 60 * (r() + .5)) % 700); circle(600 + r() * 400 + Math.sin(t + i) * 20, y, 2 + r() * 3, `rgba(140,235,255,${gl * .7 * r()})`); }
+  g.restore();
+  g.fillStyle = rgrad(W / 2, H / 2, 250, 950, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.75)']]); g.fillRect(0, 0, W, H);
+};
+// 13. end card
+SC.end = (lt, t, d) => {
+  rect(0, 0, W, H, '#02040a');
+  // rising blue lights from below
+  for (let i = 0; i < 60; i++) { const r = rnd(i + 500); const y = H + 40 - ((r() * 900 + lt * 40 * (r() + .4)) % (H + 80)); circle(r() * W, y, 1.5 + r() * 3, `rgba(110,225,255,${.15 + .5 * r()})`); }
+  glowAt(W / 2, H + 100, 700, 'rgba(60,180,255,A)', .3);
+  const a1 = ss(.6, 2.2, lt), a2 = ss(3.6, 5, lt), a3 = ss(6.6, 7.6, lt);
+  g.save(); g.textAlign = 'center';
+  g.globalAlpha = a1; g.fillStyle = '#fff'; g.font = '200 96px Outfit, sans-serif'; g.letterSpacing = (30 - a1 * 12) + 'px'; g.shadowColor = 'rgba(255,200,110,.5)'; g.shadowBlur = 30;
+  g.fillText('THE LAST LIGHT', W / 2, 360);
+  g.shadowBlur = 0; g.globalAlpha = a2; g.font = '500 22px Outfit, sans-serif'; g.letterSpacing = '10px'; g.fillStyle = '#7fe3ff'; g.fillText('PART TWO', W / 2, 450);
+  g.font = '300 58px Outfit, sans-serif'; g.letterSpacing = '6px'; g.fillStyle = '#e8f8ff'; g.fillText('The City Below', W / 2, 525);
+  g.globalAlpha = a3; g.font = '400 22px Outfit, sans-serif'; g.letterSpacing = '8px'; g.fillStyle = 'rgba(238,242,251,.6)'; g.fillText('COMING SOON', W / 2, 610);
+  g.restore();
+};
+
+/* ====================== player ====================== */
+function render(t) {
+  g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#05070d'; g.fillRect(0, 0, cv.width, cv.height);
+  if (!TL) return;
+  g.setTransform(stage.s * stage.dpr, 0, 0, stage.s * stage.dpr, stage.x * stage.dpr, stage.y * stage.dpr);
+  g.save(); g.beginPath(); g.rect(0, 0, W, H); g.clip();
+  const sIdx = Math.max(0, TL.scenes.findIndex(s => t >= s.t0 && t < s.t1));
+  const S = TL.scenes[sIdx === -1 ? TL.scenes.length - 1 : sIdx] || TL.scenes[TL.scenes.length - 1];
+  const draw = (sc, alpha) => { g.save(); g.globalAlpha = 1; SC[sc.id](t - sc.t0, t, sc.t1 - sc.t0); g.restore(); if (alpha < 1) { /* handled by overlay */ } };
+  draw(S, 1);
+  // cross-fade from black at each cut (short dip), hard cut into the storm and the twist
+  const hard = { storm: 1, twist: 1, end: 0 };
+  const sinceCut = t - S.t0, toCut = S.t1 - t;
+  let dip = 0; if (!hard[S.id]) dip = Math.max(0, 1 - sinceCut / .55);
+  const nxt = TL.scenes[TL.scenes.indexOf(S) + 1]; if (nxt && !hard[nxt.id]) dip = Math.max(dip, 1 - toCut / .45);
+  if (t < .01 && !poster) dip = 1;
+  if (poster) dip = 0;
+  if (dip > 0) { g.fillStyle = `rgba(3,4,8,${dip})`; g.fillRect(0, 0, W, H); }
+  // film grain
+  g.globalAlpha = .045; for (let i = 0; i < 70; i++) rect(Math.random() * W, Math.random() * H, 2, 2, Math.random() < .5 ? '#fff' : '#000'); g.globalAlpha = 1;
+  g.restore();
+}
+// subtitles: words drop in one by one at the moment they are spoken
+let curCue = null, shownWords = 0;
+function updSubs(t) {
+  const c = TL.cues.find(c => t >= c.t0 - .05 && t <= c.t1 + .6);
+  if (c !== curCue) {
+    curCue = c; shownWords = 0; subs.className = c ? c.who.toLowerCase() : ''; subs.innerHTML = '';
+    if (c) { if (c.who !== 'N') { const w = document.createElement('span'); w.className = 'who'; w.textContent = c.who === 'E' ? 'Elias' : 'Mira'; subs.appendChild(w); } }
+  }
+  if (!c) return;
+  if (t > c.t1 + .25) subs.classList.add('out');
+  const words = c.text.split(' '), total = c.text.length;
+  let acc = 0, want = 0;
+  for (let i = 0; i < words.length; i++) { const at = c.t0 + (c.t1 - c.t0) * (acc / total) * .96; if (t >= at) want = i + 1; acc += words[i].length + 1; }
+  while (shownWords < want) { const s = document.createElement('span'); s.className = 'w'; s.textContent = words[shownWords] + (shownWords < words.length - 1 ? ' ' : ''); subs.appendChild(s); shownWords++; }
+}
+// smooth clock (Safari updates currentTime in steps)
+let lastA = 0, lastP = 0;
+function clock() {
+  const a = audio.currentTime, now = performance.now();
+  if (audio.paused) { lastA = a; lastP = now; return a; }
+  if (a !== lastA) { lastA = a; lastP = now; return a; }
+  return Math.min(a + (now - lastP) / 1000, a + .3);
+}
+const ppBtn = document.getElementById('pp'), barI = document.querySelector('#bar i'), timeEl = document.getElementById('time'), ctl = document.getElementById('ctl');
+const ICON_PAUSE = '<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>';
+const ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>';
+const ICON_AGAIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>';
+const fmt = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+let hideT = 0;
+function poke() { ctl.classList.add('show'); clearTimeout(hideT); if (!audio.paused) hideT = setTimeout(() => ctl.classList.remove('show'), 2600); }
+function frame() {
+  const t = TL ? Math.min(clock(), TL.total) : 0;
+  render(started ? t : posterT());
+  if (started && TL) {
+    updSubs(t);
+    barI.style.width = (t / TL.total * 100) + '%'; timeEl.textContent = fmt(t) + ' / ' + fmt(TL.total);
+    document.getElementById('bar').setAttribute('aria-valuenow', Math.round(t / TL.total * 100));
+  }
+  requestAnimationFrame(frame);
+}
+// poster shows a living frame of the title scene (beam sweeping), without the title text
+const p0 = performance.now(); function posterT() { return 1 + (performance.now() - p0) / 1000; }   // title scene clock, sky keeps moving
+function setPP() { ppBtn.innerHTML = audio.ended ? ICON_AGAIN : audio.paused ? ICON_PLAY : ICON_PAUSE; ppBtn.setAttribute('aria-label', audio.ended ? 'Watch again' : audio.paused ? 'Play' : 'Pause'); }
+ppBtn.onclick = e => { e.stopPropagation(); if (audio.ended) { audio.currentTime = 0; curCue = null; } audio.paused || audio.ended ? audio.play() : audio.pause(); };
+audio.addEventListener('play', () => { setPP(); poke(); }); audio.addEventListener('pause', () => { setPP(); poke(); }); audio.addEventListener('ended', () => { setPP(); ctl.classList.add('show'); });
+cv.addEventListener('click', () => { if (!started) return; if (ctl.classList.contains('show') || audio.paused) { audio.paused ? audio.play() : audio.pause(); } poke(); });
+addEventListener('pointermove', () => { if (started) poke(); });
+addEventListener('keydown', e => { if (!started) return; if (e.code === 'Space') { e.preventDefault(); audio.paused ? audio.play() : audio.pause(); } if (e.key === 'ArrowRight') audio.currentTime += 5; if (e.key === 'ArrowLeft') audio.currentTime -= 5; poke(); });
+const bar = document.getElementById('bar');
+function seek(e) { const r = bar.getBoundingClientRect(); audio.currentTime = clamp((e.clientX - r.left) / r.width) * TL.total; curCue = null; poke(); }
+bar.addEventListener('pointerdown', e => { e.stopPropagation(); bar.setPointerCapture(e.pointerId); seek(e); bar.onpointermove = seek; });
+bar.addEventListener('pointerup', () => { bar.onpointermove = null; });
+document.getElementById('play').onclick = async () => {
+  if (!ready) return;
+  started = true; poster = false; document.getElementById('poster').classList.add('gone');
+  const tip = document.getElementById('tip'); setTimeout(() => tip.style.opacity = 0, 3500);
+  try { await audio.play(); } catch (e) { setPP(); ctl.classList.add('show'); }
+  try { navigator.wakeLock && navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {}
+};
+// load timeline + soundtrack
+(async () => {
+  try {
+    TL = await (await fetch('timeline.json')).json();
+    const blob = await (await fetch('story.mp4')).blob();
+    audio.src = URL.createObjectURL(blob);
+    await document.fonts.ready;
+    ready = true; const b = document.getElementById('play'); b.disabled = false; document.getElementById('playT').textContent = 'Play story';
+  } catch (e) { document.getElementById('playT').textContent = 'Could not load. Refresh to try again.'; }
+})();
+window.__story = { seekTo: s => { audio.currentTime = s; curCue = null; }, get t() { return audio.currentTime; }, renderAt: s => { started = true; poster = false; document.getElementById('poster').classList.add('gone'); render(s); updSubs(s); } };
+requestAnimationFrame(frame);
+})();
+</script>
